@@ -29,6 +29,8 @@ export default defineNuxtConfig({
     '@nuxt/image',
   ],
 
+  components: [{ path: '~/components', pathPrefix: false }],
+
   image: {
     quality: 80,
     format: ['webp'],
@@ -143,7 +145,7 @@ export default defineNuxtConfig({
   app: {
     head: {
       htmlAttrs: { lang: 'hu', class: 'app-dark' },
-      title: 'filmbarátok',
+      title: 'Filmbarátok',
       link: [{ rel: 'icon', href: '/favicon.ico' }],
       meta: [
         { name: 'viewport', content: 'width=device-width, initial-scale=1.0' },

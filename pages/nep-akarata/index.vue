@@ -196,9 +196,13 @@ onBeforeUnmount(() => {
     <Message v-if="error" severity="error" :closable="false">{{ error }}</Message>
 
     <div class="table-wrapper">
+      <div v-if="loading && movies.length === 0" class="movies-skeleton-list">
+        <MovieRowSkeleton v-for="n in 8" :key="n" />
+      </div>
+
       <DataTable
+        v-else
         :value="movies"
-        :loading="loading && movies.length === 0"
         data-key="id"
         striped-rows
         responsive-layout="scroll"
@@ -263,11 +267,9 @@ onBeforeUnmount(() => {
         class="scroll-sentinel"
         aria-hidden="true"
       >
-        <ProgressSpinner
-          v-if="loading && movies.length > 0"
-          style="width: 2rem; height: 2rem"
-          stroke-width="4"
-        />
+        <div v-if="loading && movies.length > 0" class="movies-skeleton-loader">
+          <MovieRowSkeleton v-for="n in 3" :key="n" />
+        </div>
       </div>
       <div v-else-if="movies.length > 0 && !error" class="list-footer">
         {{ total }} találat
@@ -383,6 +385,17 @@ onBeforeUnmount(() => {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   width: 100%;
+}
+
+.movies-skeleton-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.movies-skeleton-loader {
+  display: flex;
+  flex-direction: column;
+  margin-top: 1rem;
 }
 
 .scroll-sentinel {

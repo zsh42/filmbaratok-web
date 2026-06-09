@@ -84,19 +84,19 @@ const error = ref<string | null>(null)
 
 const CAROUSEL_SIZE = 12
 
-const { data: initialData } = await useFreshAsyncData('public-episodes', () =>
+const { data: initialData, pending: initialPending } = await useFreshAsyncData('public-episodes', () =>
   listPublicEpisodes({ page: 1, pageSize: pageSize.value }),
 )
 
-const { data: expresszData } = await useFreshAsyncData('public-episodes-tag-1', () =>
+const { data: expresszData, pending: expresszPending } = await useFreshAsyncData('public-episodes-tag-1', () =>
   listPublicEpisodes({ page: 1, pageSize: CAROUSEL_SIZE, tagId: 1 }),
 )
 
-const { data: podcastData } = await useFreshAsyncData('public-episodes-tag-7', () =>
+const { data: podcastData, pending: podcastPending } = await useFreshAsyncData('public-episodes-tag-7', () =>
   listPublicEpisodes({ page: 1, pageSize: CAROUSEL_SIZE, tagId: 7 }),
 )
 
-const { data: audiokommentarData } = await useFreshAsyncData('public-episodes-tag-2', () =>
+const { data: audiokommentarData, pending: audiokommentarPending } = await useFreshAsyncData('public-episodes-tag-2', () =>
   listPublicEpisodes({ page: 1, pageSize: CAROUSEL_SIZE, tagId: 2 }),
 )
 
@@ -298,7 +298,12 @@ onBeforeUnmount(() => {
       </a>
     </div>
 
-    <section v-if="heroEpisode" class="hero" aria-label="Legújabb epizód">
+    <ClientOnly>
+      <template #fallback>
+        <HeroSkeleton />
+      </template>
+      <HeroSkeleton v-if="initialPending || !heroEpisode" />
+      <section v-else class="hero" aria-label="Legújabb epizód">
       <NuxtImg
         v-if="heroEpisode.image"
         class="hero-bg"
@@ -371,68 +376,87 @@ onBeforeUnmount(() => {
           </a>
         </div>
       </div>
-    </section>
+      </section>
+    </ClientOnly>
 
-    <section v-if="expresszEpisodes.length" class="carousel-row" aria-label="Filmbarátok Expressz">
-      <h2 class="row-title">Filmbarátok Expressz</h2>
-      <Carousel
-        v-if="expresszEpisodes.length > 4"
-        :value="expresszEpisodes"
-        :numVisible="4"
-        :numScroll="1"
-        :responsiveOptions="carouselResponsiveOptions"
-        :showIndicators="false"
-      >
-        <template #item="slotProps">
-          <EpisodeCard :episode="slotProps.data" class="carousel-card" />
-        </template>
-      </Carousel>
-      <div v-else class="static-row">
-        <EpisodeCard v-for="ep in expresszEpisodes" :key="ep.id" :episode="ep" />
-      </div>
-    </section>
+    <ClientOnly>
+      <template #fallback>
+        <CarouselRowSkeleton title="Filmbarátok Expressz" />
+      </template>
+      <CarouselRowSkeleton v-if="expresszPending || !expresszEpisodes.length" title="Filmbarátok Expressz" />
+      <section v-else class="carousel-row" aria-label="Filmbarátok Expressz">
+        <h2 class="row-title">Filmbarátok Expressz</h2>
+        <Carousel
+          v-if="expresszEpisodes.length > 4"
+          :value="expresszEpisodes"
+          :numVisible="4"
+          :numScroll="1"
+          :responsiveOptions="carouselResponsiveOptions"
+          :showIndicators="false"
+        >
+          <template #item="slotProps">
+            <EpisodeCard :episode="slotProps.data" class="carousel-card" />
+          </template>
+        </Carousel>
+        <div v-else class="static-row">
+          <EpisodeCard v-for="ep in expresszEpisodes" :key="ep.id" :episode="ep" />
+        </div>
+      </section>
+    </ClientOnly>
 
-    <section v-if="podcastEpisodes.length" class="carousel-row" aria-label="Filmbarátok Podcast">
-      <h2 class="row-title">Filmbarátok Podcast</h2>
-      <Carousel
-        v-if="podcastEpisodes.length > 4"
-        :value="podcastEpisodes"
-        :numVisible="4"
-        :numScroll="1"
-        :responsiveOptions="carouselResponsiveOptions"
-        :showIndicators="false"
-      >
-        <template #item="slotProps">
-          <EpisodeCard :episode="slotProps.data" class="carousel-card" />
-        </template>
-      </Carousel>
-      <div v-else class="static-row">
-        <EpisodeCard v-for="ep in podcastEpisodes" :key="ep.id" :episode="ep" />
-      </div>
-    </section>
+    <ClientOnly>
+      <template #fallback>
+        <CarouselRowSkeleton title="Filmbarátok Podcast" />
+      </template>
+      <CarouselRowSkeleton v-if="podcastPending || !podcastEpisodes.length" title="Filmbarátok Podcast" />
+      <section v-else class="carousel-row" aria-label="Filmbarátok Podcast">
+        <h2 class="row-title">Filmbarátok Podcast</h2>
+        <Carousel
+          v-if="podcastEpisodes.length > 4"
+          :value="podcastEpisodes"
+          :numVisible="4"
+          :numScroll="1"
+          :responsiveOptions="carouselResponsiveOptions"
+          :showIndicators="false"
+        >
+          <template #item="slotProps">
+            <EpisodeCard :episode="slotProps.data" class="carousel-card" />
+          </template>
+        </Carousel>
+        <div v-else class="static-row">
+          <EpisodeCard v-for="ep in podcastEpisodes" :key="ep.id" :episode="ep" />
+        </div>
+      </section>
+    </ClientOnly>
 
-    <section
-      v-if="audiokommentarEpisodes.length"
-      class="carousel-row"
-      aria-label="Audiokommentárok"
-    >
-      <h2 class="row-title">Audiokommentárok</h2>
-      <Carousel
-        v-if="audiokommentarEpisodes.length > 4"
-        :value="audiokommentarEpisodes"
-        :numVisible="4"
-        :numScroll="1"
-        :responsiveOptions="carouselResponsiveOptions"
-        :showIndicators="false"
+    <ClientOnly>
+      <template #fallback>
+        <CarouselRowSkeleton title="Audiokommentárok" />
+      </template>
+      <CarouselRowSkeleton v-if="audiokommentarPending || !audiokommentarEpisodes.length" title="Audiokommentárok" />
+      <section
+        v-else
+        class="carousel-row"
+        aria-label="Audiokommentárok"
       >
-        <template #item="slotProps">
-          <EpisodeCard :episode="slotProps.data" class="carousel-card" />
-        </template>
-      </Carousel>
-      <div v-else class="static-row">
-        <EpisodeCard v-for="ep in audiokommentarEpisodes" :key="ep.id" :episode="ep" />
-      </div>
-    </section>
+        <h2 class="row-title">Audiokommentárok</h2>
+        <Carousel
+          v-if="audiokommentarEpisodes.length > 4"
+          :value="audiokommentarEpisodes"
+          :numVisible="4"
+          :numScroll="1"
+          :responsiveOptions="carouselResponsiveOptions"
+          :showIndicators="false"
+        >
+          <template #item="slotProps">
+            <EpisodeCard :episode="slotProps.data" class="carousel-card" />
+          </template>
+        </Carousel>
+        <div v-else class="static-row">
+          <EpisodeCard v-for="ep in audiokommentarEpisodes" :key="ep.id" :episode="ep" />
+        </div>
+      </section>
+    </ClientOnly>
 
     <section class="episodes-list-section">
       <header class="page-header">
@@ -452,7 +476,6 @@ onBeforeUnmount(() => {
 
       <DataView
         :value="episodes"
-        :loading="loading"
         layout="grid"
         lazy
         paginator
@@ -466,7 +489,10 @@ onBeforeUnmount(() => {
         @page="onPage"
       >
         <template #grid="{ items }">
-          <div class="episode-grid">
+          <div v-if="loading" class="episode-grid">
+            <EpisodeCardSkeleton v-for="n in pageSize" :key="`sk-${n}`" />
+          </div>
+          <div v-else class="episode-grid">
             <EpisodeCard v-for="ep in items" :key="ep.id" :episode="ep" />
           </div>
         </template>
@@ -798,6 +824,7 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+  overflow: hidden;
 }
 
 .row-title {

@@ -9,7 +9,7 @@ const route = useRoute()
 const slug = computed(() => String(route.params.slug))
 const siteUrl = useSiteConfig().url
 
-const { data } = await useFreshAsyncData(`episode-${slug.value}`, async () => {
+const { data, pending } = await useFreshAsyncData(`episode-${slug.value}`, async () => {
   try {
     return await getPublicEpisodeBySlug(slug.value)
   } catch (err) {
@@ -26,7 +26,7 @@ if (!data.value) {
 
 const episode = computed(() => data.value!.episode)
 
-const { data: relatedData } = await useFreshAsyncData(`episode-related-${slug.value}`, async () => {
+const { data: relatedData, pending: relatedPending } = await useFreshAsyncData(`episode-related-${slug.value}`, async () => {
   try {
     return await getPublicRelatedEpisodes(slug.value, 20)
   } catch {
@@ -137,6 +137,13 @@ useHead(
 
 <template>
   <article class="episode-page">
+    <ClientOnly>
+      <template #fallback>
+        <EpisodeDetailSkeleton />
+      </template>
+      <EpisodeDetailSkeleton v-if="pending" />
+
+    <template v-else>
     <section class="hero" aria-label="Epizód">
       <NuxtImg
         v-if="heroImage"
@@ -262,6 +269,8 @@ useHead(
       </div>
     </section>
 
+    <CarouselRowSkeleton v-if="relatedPending && !relatedEpisodes.length" title="Hasonló epizódok" />
+
     <section v-if="relatedEpisodes.length" class="block related-block">
       <h2 class="section-title">Hasonló epizódok</h2>
 
@@ -305,6 +314,8 @@ useHead(
         </template>
       </Carousel>
     </section>
+    </template>
+    </ClientOnly>
   </article>
 </template>
 
@@ -732,6 +743,7 @@ useHead(
   max-width: 80rem;
   padding-top: 1rem;
   padding-bottom: 3rem;
+  overflow: hidden;
 }
 
 .poster-card {

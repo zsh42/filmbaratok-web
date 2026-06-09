@@ -10,7 +10,7 @@ const route = useRoute()
 const slug = computed(() => String(route.params.slug))
 const siteUrl = useSiteConfig().url
 
-const { data } = await useFreshAsyncData(`movie-${slug.value}`, async () => {
+const { data, pending } = await useFreshAsyncData(`movie-${slug.value}`, async () => {
   try {
     return await getPublicMovieBySlug(slug.value)
   } catch (err) {
@@ -172,6 +172,13 @@ onBeforeUnmount(() => {
 
 <template>
   <article class="movie-page">
+    <ClientOnly>
+      <template #fallback>
+        <MovieDetailSkeleton />
+      </template>
+      <MovieDetailSkeleton v-if="pending" />
+
+    <template v-else>
     <nav class="breadcrumb" aria-label="Útvonal">
       <NuxtLink to="/nep-akarata" class="breadcrumb-link">
         <i class="pi pi-arrow-left" />
@@ -238,6 +245,8 @@ onBeforeUnmount(() => {
         </div>
       </div>
     </div>
+    </template>
+    </ClientOnly>
   </article>
 </template>
 
