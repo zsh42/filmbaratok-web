@@ -28,7 +28,7 @@ const search = ref('')
 const loading = ref(false)
 const error = ref<string | null>(null)
 
-const { data: initialData } = await useAsyncData('public-movies', () =>
+const { data: initialData } = await useFreshAsyncData('public-movies', () =>
   listPublicMovies({ status: status.value, page: 1, pageSize: PAGE_SIZE }),
 )
 

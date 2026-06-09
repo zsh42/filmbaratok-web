@@ -9,7 +9,7 @@ const route = useRoute()
 const slug = computed(() => String(route.params.slug))
 const siteUrl = useSiteConfig().url
 
-const { data } = await useAsyncData(`episode-${slug.value}`, async () => {
+const { data } = await useFreshAsyncData(`episode-${slug.value}`, async () => {
   try {
     return await getPublicEpisodeBySlug(slug.value)
   } catch (err) {
@@ -26,7 +26,7 @@ if (!data.value) {
 
 const episode = computed(() => data.value!.episode)
 
-const { data: relatedData } = await useAsyncData(`episode-related-${slug.value}`, async () => {
+const { data: relatedData } = await useFreshAsyncData(`episode-related-${slug.value}`, async () => {
   try {
     return await getPublicRelatedEpisodes(slug.value, 20)
   } catch {

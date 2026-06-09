@@ -10,7 +10,7 @@ const route = useRoute()
 const slug = computed(() => String(route.params.slug))
 const siteUrl = useSiteConfig().url
 
-const { data } = await useAsyncData(`movie-${slug.value}`, async () => {
+const { data } = await useFreshAsyncData(`movie-${slug.value}`, async () => {
   try {
     return await getPublicMovieBySlug(slug.value)
   } catch (err) {

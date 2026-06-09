@@ -84,19 +84,19 @@ const error = ref<string | null>(null)
 
 const CAROUSEL_SIZE = 12
 
-const { data: initialData } = await useAsyncData('public-episodes', () =>
+const { data: initialData } = await useFreshAsyncData('public-episodes', () =>
   listPublicEpisodes({ page: 1, pageSize: pageSize.value }),
 )
 
-const { data: expresszData } = await useAsyncData('public-episodes-tag-1', () =>
+const { data: expresszData } = await useFreshAsyncData('public-episodes-tag-1', () =>
   listPublicEpisodes({ page: 1, pageSize: CAROUSEL_SIZE, tagId: 1 }),
 )
 
-const { data: podcastData } = await useAsyncData('public-episodes-tag-7', () =>
+const { data: podcastData } = await useFreshAsyncData('public-episodes-tag-7', () =>
   listPublicEpisodes({ page: 1, pageSize: CAROUSEL_SIZE, tagId: 7 }),
 )
 
-const { data: audiokommentarData } = await useAsyncData('public-episodes-tag-2', () =>
+const { data: audiokommentarData } = await useFreshAsyncData('public-episodes-tag-2', () =>
   listPublicEpisodes({ page: 1, pageSize: CAROUSEL_SIZE, tagId: 2 }),
 )
 
