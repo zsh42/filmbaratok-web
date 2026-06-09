@@ -1,13 +1,14 @@
 export default defineEventHandler(async (event) => {
-  const config = useRuntimeConfig()
-  const backend = config.apiInternalUrl || config.public.apiBaseUrl
-  const cookie = getRequestHeader(event, 'cookie') ?? ''
+  const { revalidateSecret } = useRuntimeConfig()
 
-  try {
-    await $fetch(`${backend}/api/auth/me`, {
-      headers: { cookie, accept: 'application/json' },
-    })
-  } catch {
+  if (!revalidateSecret) {
+    throw createError({ statusCode: 503, statusMessage: 'Revalidation not configured' })
+  }
+
+  const auth = getRequestHeader(event, 'authorization') ?? ''
+  const provided = auth.startsWith('Bearer ') ? auth.slice(7) : ''
+
+  if (provided !== revalidateSecret) {
     throw createError({ statusCode: 401, statusMessage: 'Unauthorized' })
   }
 

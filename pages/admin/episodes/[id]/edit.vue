@@ -10,7 +10,6 @@ import {
 import { useAuthStore } from '~/stores/auth'
 import { listTags, createTag } from '~/composables/api/tags'
 import { listParticipants, createParticipant } from '~/composables/api/participants'
-import { revalidateEpisode } from '~/composables/api/cache'
 import { ApiError } from '~/composables/api/client'
 import type { Episode, EpisodeTopic, EpisodeUpdatePayload } from '@/types/episode'
 import type { Tag } from '@/types/tag'
@@ -147,7 +146,6 @@ async function save() {
   try {
     const res = await updateEpisode(episodeId.value, buildPayload())
     hydrate(res.episode)
-    await revalidateEpisode(res.episode.slug)
     toast.add({
       severity: 'success',
       summary: 'Mentve',
@@ -176,7 +174,6 @@ function refresh() {
       try {
         const res = await refreshEpisode(episodeId.value)
         hydrate(res.episode)
-        await revalidateEpisode(res.episode.slug)
         toast.add({
           severity: 'success',
           summary: 'Frissítve',
@@ -211,7 +208,6 @@ function remove() {
       deleting.value = true
       try {
         await deleteEpisode(episodeId.value)
-        await revalidateEpisode()
         toast.add({
           severity: 'success',
           summary: 'Törölve',

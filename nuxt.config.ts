@@ -14,6 +14,7 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     apiInternalUrl: '',
+    revalidateSecret: '',
     public: {
       apiBaseUrl: '',
     },
