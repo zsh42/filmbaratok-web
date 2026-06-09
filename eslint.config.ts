@@ -15,12 +15,27 @@ export default defineConfigWithVueTs(
     files: ['**/*.{vue,ts,mts,tsx}'],
   },
 
-  globalIgnores(['**/dist/**', '**/dist-ssr/**', '**/coverage/**']),
+  globalIgnores([
+    '**/dist/**',
+    '**/dist-ssr/**',
+    '**/coverage/**',
+    '**/.output/**',
+    '**/.nuxt/**',
+    '**/.data/**',
+  ]),
 
   ...pluginVue.configs['flat/essential'],
   vueTsConfigs.recommended,
 
   ...pluginOxlint.buildFromOxlintConfigFile('.oxlintrc.json'),
+
+  {
+    name: 'app/nuxt-pages-layouts',
+    files: ['pages/**/*.vue', 'layouts/**/*.vue', 'error.vue', 'app.vue'],
+    rules: {
+      'vue/multi-word-component-names': 'off',
+    },
+  },
 
   skipFormatting,
 )

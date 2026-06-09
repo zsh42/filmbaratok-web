@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useToast } from 'primevue/usetoast'
 import { ApiError } from '~/composables/api/client'
 
 definePageMeta({ layout: 'default', ssr: false, middleware: ['guest'] })
@@ -9,7 +8,6 @@ useSeoMeta({ title: 'Bejelentkezés – filmbarátok' })
 const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
-const toast = useToast()
 
 const email = ref('')
 const password = ref('')
