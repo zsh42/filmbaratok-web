@@ -10,7 +10,9 @@ const route = useRoute()
 const slug = computed(() => String(route.params.slug))
 const siteUrl = useSiteConfig().url
 
-const { data, pending } = await useFreshAsyncData(`movie-${slug.value}`, async () => {
+const { lastUrl: nepakarataBackUrl } = useListingMemory('nepakarata')
+
+const { data, pending } = await useAsyncData(`movie-${slug.value}`, async () => {
   try {
     return await getPublicMovieBySlug(slug.value)
   } catch (err) {
@@ -180,7 +182,7 @@ onBeforeUnmount(() => {
 
     <template v-else>
     <nav class="breadcrumb" aria-label="Útvonal">
-      <NuxtLink to="/nep-akarata" class="breadcrumb-link">
+      <NuxtLink :to="nepakarataBackUrl" class="breadcrumb-link">
         <i class="pi pi-arrow-left" />
         <span>A Nép akarata</span>
       </NuxtLink>

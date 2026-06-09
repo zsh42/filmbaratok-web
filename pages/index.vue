@@ -2,23 +2,20 @@
 import { nextTick, onBeforeUnmount, onMounted, ref, computed, watch } from 'vue'
 import type VanillaTiltModule from 'vanilla-tilt'
 import { listPublicEpisodes } from '~/composables/api/episodes'
-import { ApiError } from '~/composables/api/client'
 import type { Episode } from '@/types/episode'
 import youtubeIcon from '@/assets/icons/youtube-icon.svg'
-import soundcloudIcon from '@/assets/icons/soundcloud.svg'
+import soundcloudIcon from '@/assets/icons/soundcloud-2.svg'
 import appleIcon from '@/assets/icons/apple-icon.svg'
-import patreonIcon from '@/assets/icons/patreon.svg'
+import patreonIcon from '@/assets/icons/patreon-2.svg'
 import facebookIcon from '@/assets/icons/facebook.svg'
 import blogIcon from '@/assets/icons/blog.svg'
 
 definePageMeta({ layout: 'default' })
 useSeoMeta({
   title: 'Kezdőlap – filmbarátok',
-  description:
-    'A filmbarátok podcast epizódjainak listája. Filmes vélemények, ajánlók és közös szavazások.',
-  ogTitle: 'filmbarátok – Epizódok',
-  ogDescription:
-    'A filmbarátok podcast epizódjainak listája. Filmes vélemények, ajánlók és közös szavazások.',
+  description: 'A filmbarátok podcast — filmes vélemények, ajánlók, közös szavazások.',
+  ogTitle: 'filmbarátok',
+  ogDescription: 'A filmbarátok podcast — filmes vélemények, ajánlók, közös szavazások.',
   ogType: 'website',
   twitterCard: 'summary_large_image',
 })
@@ -43,72 +40,65 @@ const socialLinks: SocialLink[] = [
     name: 'SoundCloud',
     href: 'https://soundcloud.com/filmbaratokpodcast',
     icon: soundcloudIcon,
-    color: '#FF550099',
+    color: '#FF5500',
     textColor: '#ffffff',
   },
   {
     name: 'Facebook',
     href: 'https://www.facebook.com/profile.php?id=100032362197012',
     icon: facebookIcon,
-    color: '#1877F299',
+    color: '#1877F2',
     textColor: '#ffffff',
   },
   {
     name: 'Apple Podcasts',
     href: 'https://podcasts.apple.com/hu/podcast/filmbar%C3%A1tok-podcast/id1165929483',
     icon: appleIcon,
-    color: '#9933CC99',
+    color: '#9933CC',
     textColor: '#ffffff',
   },
   {
     name: 'Patreon',
     href: 'https://www.patreon.com/filmbaratok',
     icon: patreonIcon,
-    color: '#00000099',
+    color: '#1c1c1c',
     textColor: '#ffffff',
   },
   {
     name: 'Blog',
     href: 'https://filmbaratok.blog.hu/',
     icon: blogIcon,
-    color: '#E6001299',
+    color: '#E60012',
     textColor: '#ffffff',
   },
 ]
 
-const pageSize = ref(12)
-const searchInput = ref('')
-const search = ref('')
-const loading = ref(false)
-const error = ref<string | null>(null)
-
 const CAROUSEL_SIZE = 12
 
-const { data: initialData, pending: initialPending } = await useFreshAsyncData('public-episodes', () =>
-  listPublicEpisodes({ page: 1, pageSize: pageSize.value }),
+const { data: heroData, pending: heroPending } = await useAsyncData('public-episodes-hero', () =>
+  listPublicEpisodes({ page: 1, pageSize: 1 }),
 )
 
-const { data: expresszData, pending: expresszPending } = await useFreshAsyncData('public-episodes-tag-1', () =>
-  listPublicEpisodes({ page: 1, pageSize: CAROUSEL_SIZE, tagId: 1 }),
+const { data: expresszData, pending: expresszPending } = await useAsyncData(
+  'public-episodes-tag-1',
+  () => listPublicEpisodes({ page: 1, pageSize: CAROUSEL_SIZE, tagId: 1 }),
 )
 
-const { data: podcastData, pending: podcastPending } = await useFreshAsyncData('public-episodes-tag-7', () =>
-  listPublicEpisodes({ page: 1, pageSize: CAROUSEL_SIZE, tagId: 7 }),
+const { data: podcastData, pending: podcastPending } = await useAsyncData(
+  'public-episodes-tag-7',
+  () => listPublicEpisodes({ page: 1, pageSize: CAROUSEL_SIZE, tagId: 7 }),
 )
 
-const { data: audiokommentarData, pending: audiokommentarPending } = await useFreshAsyncData('public-episodes-tag-2', () =>
-  listPublicEpisodes({ page: 1, pageSize: CAROUSEL_SIZE, tagId: 2 }),
+const { data: audiokommentarData, pending: audiokommentarPending } = await useAsyncData(
+  'public-episodes-tag-2',
+  () => listPublicEpisodes({ page: 1, pageSize: CAROUSEL_SIZE, tagId: 2 }),
 )
-
-const episodes = ref<Episode[]>(initialData.value?.episodes ?? [])
-const total = ref(initialData.value?.total ?? 0)
-const page = ref(initialData.value?.page ?? 1)
 
 const expresszEpisodes = computed<Episode[]>(() => expresszData.value?.episodes ?? [])
 const podcastEpisodes = computed<Episode[]>(() => podcastData.value?.episodes ?? [])
 const audiokommentarEpisodes = computed<Episode[]>(() => audiokommentarData.value?.episodes ?? [])
 
-const heroEpisode = computed<Episode | null>(() => initialData.value?.episodes?.[0] ?? null)
+const heroEpisode = computed<Episode | null>(() => heroData.value?.episodes?.[0] ?? null)
 
 const heroParticipantString = computed(
   () => heroEpisode.value?.participants?.map((p) => p.name).join(' – ') ?? '',
@@ -131,77 +121,6 @@ const heroPublishedLong = computed(() => {
 const heroSlugLink = computed(() =>
   heroEpisode.value ? `/epizodok/${heroEpisode.value.slug}` : '/',
 )
-
-const siteUrl = useSiteConfig().url
-
-useHead(
-  computed(() => ({
-    script: [
-      {
-        type: 'application/ld+json',
-        key: 'schema-episodes',
-        innerHTML: JSON.stringify({
-          '@context': 'https://schema.org',
-          '@type': 'ItemList',
-          name: 'filmbarátok – Epizódok',
-          numberOfItems: total.value,
-          itemListElement: episodes.value.map((ep, i) => ({
-            '@type': 'ListItem',
-            position: (page.value - 1) * pageSize.value + i + 1,
-            name: ep.title,
-            url: `${siteUrl}/epizodok/${ep.slug}`,
-          })),
-        }),
-      },
-    ],
-  })),
-)
-
-async function load() {
-  loading.value = true
-  error.value = null
-  try {
-    const res = await listPublicEpisodes({
-      page: page.value,
-      pageSize: pageSize.value,
-      search: search.value || null,
-    })
-    episodes.value = res.episodes
-    total.value = res.total
-    page.value = res.page
-    pageSize.value = res.pageSize
-  } catch (err) {
-    if (err instanceof ApiError) {
-      error.value = `Hiba a lekérdezés során (${err.status}).`
-    } else {
-      error.value = 'Hiba a lekérdezés során.'
-    }
-    episodes.value = []
-    total.value = 0
-  } finally {
-    loading.value = false
-  }
-}
-
-function applySearch() {
-  search.value = searchInput.value.trim()
-  page.value = 1
-  load()
-}
-
-function clearSearch() {
-  searchInput.value = ''
-  applySearch()
-}
-
-function onPage(event: { page: number; rows: number }) {
-  page.value = event.page + 1
-  pageSize.value = event.rows
-  load()
-  document
-    .querySelector('.episodes-list-section')
-    ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-}
 
 const carouselResponsiveOptions = ref([
   { breakpoint: '1400px', numVisible: 4, numScroll: 1 },
@@ -255,7 +174,6 @@ async function onTiltMqChange(e: MediaQueryListEvent) {
   }
 }
 
-watch(episodes, refreshTilt)
 watch([expresszEpisodes, podcastEpisodes, audiokommentarEpisodes], refreshTilt)
 
 onMounted(async () => {
@@ -276,130 +194,83 @@ onBeforeUnmount(() => {
 
 <template>
   <section class="home">
-    <div class="social-row">
-      <a
-        v-for="link in socialLinks"
-        :key="link.name"
-        :href="link.href"
-        target="_blank"
-        rel="noopener noreferrer"
-        class="social-pill"
-        :style="{ '--pill-bg': link.color, '--pill-fg': link.textColor || '#fff' }"
-        :aria-label="link.name"
-      >
-        <img
-          :src="link.icon"
-          alt=""
-          class="social-pill-icon"
-          style="width: 1.25rem; height: 1.25rem; flex: 0 0 1.25rem"
-          aria-hidden="true"
-        />
-        <span class="social-pill-label">{{ link.name }}</span>
-      </a>
-    </div>
-
     <ClientOnly>
       <template #fallback>
         <HeroSkeleton />
       </template>
-      <HeroSkeleton v-if="initialPending || !heroEpisode" />
+      <HeroSkeleton v-if="heroPending || !heroEpisode" />
       <section v-else class="hero" aria-label="Legújabb epizód">
-      <NuxtImg
-        v-if="heroEpisode.image"
-        class="hero-bg"
-        :src="heroEpisode.image"
-        alt=""
-        width="1400"
-        height="788"
-        sizes="100vw md:1400px"
-        preload
-        fetchpriority="high"
-      />
-      <div class="hero-scrim" />
+        <NuxtImg
+          v-if="heroEpisode.image"
+          class="hero-bg"
+          :src="heroEpisode.image"
+          alt=""
+          width="1400"
+          height="788"
+          sizes="100vw md:1400px"
+          preload
+          fetchpriority="high"
+        />
+        <div class="hero-scrim" />
 
-      <div class="hero-content">
-        <span class="hero-eyebrow">Legújabb epizód</span>
-        <h1 class="hero-title">{{ heroEpisode.title }}</h1>
+        <div class="hero-content">
+          <span class="hero-eyebrow">Legújabb epizód</span>
+          <h1 class="hero-title">{{ heroEpisode.title }}</h1>
 
-        <div v-if="heroParticipantString" class="hero-participants">
-          <span>{{ heroParticipantString }}</span>
-        </div>
+          <div v-if="heroParticipantString" class="hero-participants">
+            <span>{{ heroParticipantString }}</span>
+          </div>
 
-        <div v-if="heroPublishedLong" class="hero-meta">
-          <span class="meta-item">
-            <i class="pi pi-calendar" aria-hidden="true" />
-            {{ heroPublishedLong }}
-          </span>
-        </div>
+          <div v-if="heroPublishedLong" class="hero-meta">
+            <span class="meta-item">
+              <i class="pi pi-calendar" aria-hidden="true" />
+              {{ heroPublishedLong }}
+            </span>
+          </div>
 
-        <div class="hero-actions">
-          <NuxtLink :to="heroSlugLink" class="primary-action">
-            <i class="pi pi-play-circle" />
-            <span>Részletek</span>
-          </NuxtLink>
+          <div class="hero-actions">
+            <NuxtLink :to="heroSlugLink" class="primary-action">
+              <i class="pi pi-play-circle" />
+              <span>Részletek</span>
+            </NuxtLink>
 
-          <a
-            v-if="heroWatchUrl"
-            :href="heroWatchUrl"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="icon-action"
-            aria-label="Megnézés YouTube-on"
-            v-tooltip.bottom="'YouTube'"
-          >
-            <i class="pi pi-youtube" />
-          </a>
+            <a
+              v-if="heroWatchUrl"
+              :href="heroWatchUrl"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="icon-action"
+              aria-label="Megnézés YouTube-on"
+              v-tooltip.bottom="'YouTube'"
+            >
+              <i class="pi pi-youtube" />
+            </a>
 
-          <a
-            v-if="heroEpisode.soundcloudUrl"
-            :href="heroEpisode.soundcloudUrl"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="icon-action"
-            aria-label="SoundCloud-on hallgatás"
-            v-tooltip.bottom="'SoundCloud'"
-          >
-            <i class="pi pi-volume-up" />
-          </a>
+            <a
+              v-if="heroEpisode.soundcloudUrl"
+              :href="heroEpisode.soundcloudUrl"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="icon-action"
+              aria-label="SoundCloud-on hallgatás"
+              v-tooltip.bottom="'SoundCloud'"
+            >
+              <i class="pi pi-volume-up" />
+            </a>
 
-          <a
-            v-if="heroEpisode.downloadUrl"
-            :href="heroEpisode.downloadUrl"
-            target="_blank"
-            rel="noopener noreferrer"
-            download
-            class="icon-action"
-            aria-label="Letöltés"
-            v-tooltip.bottom="'Letöltés'"
-          >
-            <i class="pi pi-download" />
-          </a>
-        </div>
-      </div>
-      </section>
-    </ClientOnly>
-
-    <ClientOnly>
-      <template #fallback>
-        <CarouselRowSkeleton title="Filmbarátok Expressz" />
-      </template>
-      <CarouselRowSkeleton v-if="expresszPending || !expresszEpisodes.length" title="Filmbarátok Expressz" />
-      <section v-else class="carousel-row" aria-label="Filmbarátok Expressz">
-        <h2 class="row-title">Filmbarátok Expressz</h2>
-        <Carousel
-          v-if="expresszEpisodes.length > 4"
-          :value="expresszEpisodes"
-          :numVisible="4"
-          :numScroll="1"
-          :responsiveOptions="carouselResponsiveOptions"
-          :showIndicators="false"
-        >
-          <template #item="slotProps">
-            <EpisodeCard :episode="slotProps.data" class="carousel-card" />
-          </template>
-        </Carousel>
-        <div v-else class="static-row">
-          <EpisodeCard v-for="ep in expresszEpisodes" :key="ep.id" :episode="ep" />
+            <a
+              v-if="heroEpisode.downloadUrl"
+              :href="heroEpisode.downloadUrl"
+              target="_blank"
+              rel="noopener noreferrer"
+              download
+              class="icon-action"
+              aria-label="Letöltés"
+              v-tooltip.bottom="'Letöltés'"
+            >
+              <i class="pi pi-download" />
+            </a>
+          </div>
         </div>
       </section>
     </ClientOnly>
@@ -408,9 +279,17 @@ onBeforeUnmount(() => {
       <template #fallback>
         <CarouselRowSkeleton title="Filmbarátok Podcast" />
       </template>
-      <CarouselRowSkeleton v-if="podcastPending || !podcastEpisodes.length" title="Filmbarátok Podcast" />
+      <CarouselRowSkeleton
+        v-if="podcastPending || !podcastEpisodes.length"
+        title="Filmbarátok Podcast"
+      />
       <section v-else class="carousel-row" aria-label="Filmbarátok Podcast">
-        <h2 class="row-title">Filmbarátok Podcast</h2>
+        <div class="row-head">
+          <h2 class="row-title">Filmbarátok Podcast</h2>
+          <NuxtLink to="/epizodok?tag=podcast" class="row-more">
+            Összes <i class="pi pi-arrow-right" />
+          </NuxtLink>
+        </div>
         <Carousel
           v-if="podcastEpisodes.length > 4"
           :value="podcastEpisodes"
@@ -431,15 +310,52 @@ onBeforeUnmount(() => {
 
     <ClientOnly>
       <template #fallback>
+        <CarouselRowSkeleton title="Filmbarátok Expressz" />
+      </template>
+      <CarouselRowSkeleton
+        v-if="expresszPending || !expresszEpisodes.length"
+        title="Filmbarátok Expressz"
+      />
+      <section v-else class="carousel-row" aria-label="Filmbarátok Expressz">
+        <div class="row-head">
+          <h2 class="row-title">Filmbarátok Expressz</h2>
+          <NuxtLink to="/epizodok?tag=expressz" class="row-more">
+            Összes <i class="pi pi-arrow-right" />
+          </NuxtLink>
+        </div>
+        <Carousel
+          v-if="expresszEpisodes.length > 4"
+          :value="expresszEpisodes"
+          :numVisible="4"
+          :numScroll="1"
+          :responsiveOptions="carouselResponsiveOptions"
+          :showIndicators="false"
+        >
+          <template #item="slotProps">
+            <EpisodeCard :episode="slotProps.data" class="carousel-card" />
+          </template>
+        </Carousel>
+        <div v-else class="static-row">
+          <EpisodeCard v-for="ep in expresszEpisodes" :key="ep.id" :episode="ep" />
+        </div>
+      </section>
+    </ClientOnly>
+
+    <ClientOnly>
+      <template #fallback>
         <CarouselRowSkeleton title="Audiokommentárok" />
       </template>
-      <CarouselRowSkeleton v-if="audiokommentarPending || !audiokommentarEpisodes.length" title="Audiokommentárok" />
-      <section
-        v-else
-        class="carousel-row"
-        aria-label="Audiokommentárok"
-      >
-        <h2 class="row-title">Audiokommentárok</h2>
+      <CarouselRowSkeleton
+        v-if="audiokommentarPending || !audiokommentarEpisodes.length"
+        title="Audiokommentárok"
+      />
+      <section v-else class="carousel-row" aria-label="Audiokommentárok">
+        <div class="row-head">
+          <h2 class="row-title">Audiokommentárok</h2>
+          <NuxtLink to="/epizodok?tag=audiokommentar" class="row-more">
+            Összes <i class="pi pi-arrow-right" />
+          </NuxtLink>
+        </div>
         <Carousel
           v-if="audiokommentarEpisodes.length > 4"
           :value="audiokommentarEpisodes"
@@ -458,50 +374,48 @@ onBeforeUnmount(() => {
       </section>
     </ClientOnly>
 
-    <section class="episodes-list-section">
-      <header class="page-header">
-        <h2>Összes epizód</h2>
-      </header>
+    <div class="all-link-row">
+      <NuxtLink to="/epizodok" class="all-link">
+        Összes epizód böngészése <i class="pi pi-arrow-right" />
+      </NuxtLink>
+    </div>
 
-      <div class="toolbar">
-        <IconField class="search">
-          <InputIcon class="pi pi-search" />
-          <InputText v-model="searchInput" placeholder="Keresés…" @keyup.enter="applySearch" />
-          <InputIcon v-if="searchInput" class="pi pi-times clear-icon" @click="clearSearch" />
-        </IconField>
-        <Button label="Keresés" icon="pi pi-search" @click="applySearch" />
+    <footer class="social-row">
+      <div>
+        <h3 class="font-bold text-xl mb-3">Itt is megtalálsz minket</h3>
+        <div class="flex gap-3">
+          <a
+            v-for="link in socialLinks"
+            :key="link.name"
+            :href="link.href"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="social-pill"
+            v-tooltip.top="{
+              value: link.name,
+              showDelay: 300,
+              hideDelay: 100,
+              pt: {
+                root: {
+                  // Itt tudod finomhangolni a távolságot pixelben
+                  style: { transform: 'translateY(-10px)' },
+                },
+              },
+            }"
+            :style="{ '--pill-bg': link.color, '--pill-fg': link.textColor || '#fff' }"
+            :aria-label="link.name"
+          >
+            <img
+              :src="link.icon"
+              alt=""
+              class="social-pill-icon"
+              style="width: 1.25rem; height: 1.25rem; flex: 0 0 1.25rem"
+              aria-hidden="true"
+            />
+          </a>
+        </div>
       </div>
-
-      <Message v-if="error" severity="error" :closable="false">{{ error }}</Message>
-
-      <DataView
-        :value="episodes"
-        layout="grid"
-        lazy
-        paginator
-        :rows="pageSize"
-        :total-records="total"
-        :first="(page - 1) * pageSize"
-        :rows-per-page-options="[6, 12, 24, 48]"
-        data-key="id"
-        paginator-template="FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink RowsPerPageDropdown"
-        current-page-report-template="{first}–{last} / {totalRecords}"
-        @page="onPage"
-      >
-        <template #grid="{ items }">
-          <div v-if="loading" class="episode-grid">
-            <EpisodeCardSkeleton v-for="n in pageSize" :key="`sk-${n}`" />
-          </div>
-          <div v-else class="episode-grid">
-            <EpisodeCard v-for="ep in items" :key="ep.id" :episode="ep" />
-          </div>
-        </template>
-
-        <template #empty>
-          <div class="empty">Nincs találat.</div>
-        </template>
-      </DataView>
-    </section>
+    </footer>
   </section>
 </template>
 
@@ -514,9 +428,17 @@ onBeforeUnmount(() => {
 
 /* ===== Social row ===== */
 .social-row {
-  display: grid;
+  display: flex;
+  flex-direction: column;
   grid-template-columns: repeat(6, 1fr);
   gap: 0.6rem;
+}
+
+.footer-container {
+  background-color: var(--surface-overlay);
+  border-top: 1px solid var(--surface-border);
+  padding: 3rem 2rem 2rem 2rem;
+  margin-top: auto; /* Ha sticky footert szeretnél */
 }
 
 .social-pill {
@@ -524,8 +446,8 @@ onBeforeUnmount(() => {
   align-items: center;
   justify-content: center;
   gap: 0.55rem;
-  padding: 0.7rem 1rem;
-  border-radius: 0.65rem;
+  padding: 0.5rem;
+  border-radius: 50%;
   background: var(--pill-bg);
   color: var(--pill-fg);
   text-decoration: none;
@@ -544,16 +466,14 @@ onBeforeUnmount(() => {
 .social-pill:hover,
 .social-pill:focus-visible {
   transform: translateY(-2px);
-  filter: brightness(1.2);
+  filter: brightness(1.1);
   box-shadow: 0 10px 22px -10px rgba(0, 0, 0, 0.45);
 }
 
 .social-pill-icon {
-  width: 1.1rem;
-  height: 1.1rem;
+  width: 2rem;
   object-fit: contain;
   flex-shrink: 0;
-  /* border-radius: 50%; */
 }
 
 .social-pill-label {
@@ -604,8 +524,7 @@ onBeforeUnmount(() => {
 
 @media (hover: hover) and (pointer: fine) {
   .hero:has(.hero-actions:hover) .hero-bg {
-    scale: 1.1;
-    filter: blur(2px);
+    scale: 1.01;
   }
 }
 
@@ -618,23 +537,6 @@ onBeforeUnmount(() => {
   }
 }
 
-/* .hero::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 60%;
-  pointer-events: none;
-  background: linear-gradient(
-    to bottom,
-    transparent 0%,
-    var(--p-content-background) 95%,
-    var(--p-content-background) 100%
-  );
-  z-index: 1;
-} */
-
 .hero-bg {
   position: absolute;
   inset: 0;
@@ -644,8 +546,8 @@ onBeforeUnmount(() => {
   object-fit: cover;
   object-position: center;
   transition:
-    scale 250ms ease-out,
-    filter 250ms ease-out;
+    scale 250ms 180ms ease-out,
+    filter 250ms 180ms ease-out;
 }
 
 .hero-scrim {
@@ -827,11 +729,48 @@ onBeforeUnmount(() => {
   overflow: hidden;
 }
 
+.row-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
 .row-title {
   margin: 0;
   font-size: 1.15rem;
   font-weight: 700;
   letter-spacing: 0.01em;
+}
+
+.row-more {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.85rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--p-text-color);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition:
+    background-color 0.15s,
+    border-color 0.15s,
+    transform 0.15s;
+  white-space: nowrap;
+}
+
+.row-more:hover,
+.row-more:focus-visible {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.22);
+  transform: translateX(2px);
+}
+
+.row-more i {
+  font-size: 0.75rem;
 }
 
 .carousel-row :deep(.p-carousel-item) {
@@ -845,95 +784,6 @@ onBeforeUnmount(() => {
 
 .carousel-card {
   height: 100%;
-}
-
-/* ===== Episodes list (paginated) ===== */
-.episodes-list-section {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  scroll-margin-top: 1rem;
-}
-
-.page-header h2 {
-  margin: 0;
-  font-size: 1.15rem;
-  font-weight: 700;
-}
-
-.toolbar {
-  display: flex;
-  gap: 0.6rem;
-  align-items: stretch;
-  flex-wrap: wrap;
-}
-
-.search {
-  flex: 1 1 240px;
-  max-width: 480px;
-  min-width: 0;
-}
-
-.search :deep(.p-inputtext) {
-  width: 100%;
-  border-radius: 999px;
-  padding-block: 0.7rem;
-  font-weight: 500;
-  letter-spacing: 0.01em;
-  box-shadow: 0 4px 14px -8px rgba(0, 0, 0, 0.35);
-  transition:
-    transform 0.15s,
-    border-color 0.15s,
-    box-shadow 0.2s;
-}
-
-.search :deep(.p-inputtext:hover),
-.search :deep(.p-inputtext:focus) {
-  transform: translateY(-1px);
-  box-shadow: 0 10px 22px -10px rgba(0, 0, 0, 0.45);
-}
-
-.clear-icon {
-  cursor: pointer;
-  pointer-events: auto;
-}
-
-.toolbar :deep(.p-button) {
-  border-radius: 999px;
-  padding: 0.7rem 1.4rem;
-  background: #fff;
-  color: #0c0c14;
-  border: none;
-  font-weight: 600;
-  font-size: 0.95rem;
-  letter-spacing: 0.01em;
-  box-shadow: 0 6px 18px -6px rgba(0, 0, 0, 0.55);
-  transition:
-    transform 0.15s,
-    box-shadow 0.2s,
-    background-color 0.2s;
-}
-
-.toolbar :deep(.p-button:hover),
-.toolbar :deep(.p-button:focus-visible) {
-  transform: translateY(-1px);
-  background: #f6f6f9;
-  color: #0c0c14;
-  box-shadow: 0 10px 22px -8px rgba(0, 0, 0, 0.6);
-}
-
-@media (max-width: 480px) {
-  .toolbar :deep(.p-button) {
-    padding: 0.6rem 1.15rem;
-    font-size: 0.9rem;
-  }
-}
-
-.episode-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 1rem;
-  padding: 1rem 0;
 }
 
 .static-row {
@@ -960,15 +810,37 @@ onBeforeUnmount(() => {
   }
 }
 
-.empty {
-  padding: 2rem;
-  text-align: center;
-  color: var(--p-text-muted-color);
+/* ===== "Összes epizód" CTA ===== */
+.all-link-row {
+  display: flex;
+  justify-content: center;
+  padding: 1rem 0 2rem;
 }
 
-@media (max-width: 480px) {
-  .page-header h2 {
-    font-size: clamp(1rem, 5vw, 1.25rem);
-  }
+.all-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.85rem 1.6rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: var(--p-text-color);
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition:
+    background-color 0.15s,
+    border-color 0.15s,
+    transform 0.15s,
+    box-shadow 0.2s;
+}
+
+.all-link:hover,
+.all-link:focus-visible {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.24);
+  transform: translateY(-1px);
+  box-shadow: 0 10px 22px -10px rgba(0, 0, 0, 0.45);
 }
 </style>

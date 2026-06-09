@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { onBeforeRouteLeave } from 'vue-router'
 import type { DataTableRowClickEvent } from 'primevue/datatable'
 import { listPublicMovies } from '~/composables/api/movies'
 import { ApiError } from '~/composables/api/client'
@@ -28,7 +29,18 @@ const search = ref('')
 const loading = ref(false)
 const error = ref<string | null>(null)
 
-const { data: initialData } = await useFreshAsyncData('public-movies', () =>
+interface MoviesListingCache {
+  movies: Movie[]
+  total: number
+  loadedPage: number
+  status: MovieStatus
+  search: string
+  searchInput: string
+}
+
+const listingMemory = useListingMemory<MoviesListingCache>('nepakarata')
+
+const { data: initialData } = await useAsyncData('public-movies', () =>
   listPublicMovies({ status: status.value, page: 1, pageSize: PAGE_SIZE }),
 )
 
@@ -112,6 +124,7 @@ function reset() {
   total.value = 0
   loadedPage.value = 0
   loading.value = false
+  listingMemory.clear()
   loadMore()
 }
 
@@ -159,8 +172,37 @@ watch(sentinel, (el, _prev, onCleanup) => {
   })
 })
 
+const route = useRoute()
+
 onMounted(() => {
+  const cached = listingMemory.read()
+  if (cached && cached.movies?.length) {
+    movies.value = cached.movies
+    total.value = cached.total
+    loadedPage.value = cached.loadedPage
+    status.value = cached.status
+    search.value = cached.search
+    searchInput.value = cached.searchInput
+    loading.value = false
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => window.scrollTo(0, cached.scrollY))
+    })
+    listingMemory.setLastUrl(route.fullPath)
+    return
+  }
+  listingMemory.setLastUrl(route.fullPath)
   if (movies.value.length === 0) loadMore()
+})
+
+onBeforeRouteLeave(() => {
+  listingMemory.save({
+    movies: movies.value,
+    total: total.value,
+    loadedPage: loadedPage.value,
+    status: status.value,
+    search: search.value,
+    searchInput: searchInput.value,
+  })
 })
 
 onBeforeUnmount(() => {
@@ -396,6 +438,7 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   margin-top: 1rem;
+  width: 100%;
 }
 
 .scroll-sentinel {

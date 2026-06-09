@@ -5,6 +5,10 @@ export default defineNuxtConfig({
   compatibilityDate: '2025-06-01',
   devtools: { enabled: true },
 
+  experimental: {
+    payloadExtraction: false,
+  },
+
   site: {
     url: 'https://filmbaratok.hu',
     name: 'filmbarátok',
@@ -135,6 +139,7 @@ export default defineNuxtConfig({
 
   routeRules: {
     '/': { swr: 60 },
+    '/epizodok': { swr: 60 },
     '/nep-akarata': { swr: 60 },
     '/epizodok/**': { swr: 3600 },
     '/nep-akarata/**': { swr: 3600 },

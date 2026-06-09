@@ -9,7 +9,9 @@ const route = useRoute()
 const slug = computed(() => String(route.params.slug))
 const siteUrl = useSiteConfig().url
 
-const { data, pending } = await useFreshAsyncData(`episode-${slug.value}`, async () => {
+const { lastUrl: homeBackUrl } = useListingMemory('home')
+
+const { data, pending } = await useAsyncData(`episode-${slug.value}`, async () => {
   try {
     return await getPublicEpisodeBySlug(slug.value)
   } catch (err) {
@@ -26,17 +28,24 @@ if (!data.value) {
 
 const episode = computed(() => data.value!.episode)
 
-const { data: relatedData, pending: relatedPending } = await useFreshAsyncData(`episode-related-${slug.value}`, async () => {
-  try {
-    return await getPublicRelatedEpisodes(slug.value, 20)
-  } catch {
-    return { episodes: [] }
-  }
-})
+const { data: relatedData, pending: relatedPending } = await useAsyncData(
+  `episode-related-${slug.value}`,
+  async () => {
+    try {
+      return await getPublicRelatedEpisodes(slug.value, 20)
+    } catch {
+      return { episodes: [] }
+    }
+  },
+)
 
 const participantString = computed(
   () => episode.value.participants?.map((p) => p.name).join(' - ') ?? '',
 )
+
+const descriptionRegex =
+  /(?:Direkt\s+)?(?:letöltési\s+link\s+)?https:\/\/feeds\.soundcloud\.com\/\S*\s*/g
+const description = computed(() => episode.value.description?.replace(descriptionRegex, ''))
 
 const relatedEpisodes = computed(() => relatedData.value?.episodes ?? [])
 const brokenRelatedImages = ref(new Set<string | number>())
@@ -143,178 +152,188 @@ useHead(
       </template>
       <EpisodeDetailSkeleton v-if="pending" />
 
-    <template v-else>
-    <section class="hero" aria-label="Epizód">
-      <NuxtImg
-        v-if="heroImage"
-        class="hero-bg"
-        :src="heroImage"
-        alt=""
-        width="1400"
-        height="788"
-        sizes="100vw md:1400px"
-        preload
-        fetchpriority="high"
-      />
-      <div class="hero-scrim" />
-
-      <NuxtLink to="/" class="hero-back" aria-label="Vissza az epizódokhoz">
-        <i class="pi pi-arrow-left" />
-        <span>Epizódok</span>
-      </NuxtLink>
-
-      <div class="hero-content">
-        <h1 class="hero-title">{{ episode.title }}</h1>
-
-        <div v-if="participantString" class="hero-participants">
-          <span>{{ participantString }}</span>
-        </div>
-
-        <div v-if="publishedLong" class="hero-meta">
-          <span class="meta-item meta-date">
-            <i class="pi pi-calendar" aria-hidden="true" />
-            {{ publishedLong }}
-          </span>
-        </div>
-
-        <div class="hero-actions">
-          <a
-            v-if="watchUrl"
-            :href="watchUrl"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="primary-action"
-          >
-            <i class="pi pi-play-circle" />
-            <span>Megnézés</span>
-          </a>
-
-          <a
-            v-if="episode.soundcloudUrl"
-            :href="episode.soundcloudUrl"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="icon-action"
-            aria-label="SoundCloud-on hallgatás"
-            v-tooltip.bottom="'SoundCloud'"
-          >
-            <svg
-              class="action-svg"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-              aria-hidden="true"
-              focusable="false"
-            >
-              <path
-                d="M1.4 14.4c.1 0 .2-.1.2-.2l.3-2-.3-2c0-.1-.1-.2-.2-.2s-.2.1-.2.2l-.3 2 .3 2c0 .1.1.2.2.2zm1.4.6c.1 0 .2-.1.2-.2l.4-2.6-.4-2.7c0-.1-.1-.2-.2-.2s-.2.1-.2.2l-.3 2.7.3 2.6c0 .1.1.2.2.2zm1.6.3c.2 0 .3-.1.3-.3l.3-2.8-.3-2.9c0-.2-.1-.3-.3-.3s-.3.1-.3.3l-.3 2.9.3 2.8c0 .2.1.3.3.3zm1.6.1c.2 0 .3-.1.3-.3l.3-2.9-.3-3c0-.2-.1-.3-.3-.3s-.3.1-.3.3l-.2 3 .2 2.9c0 .2.1.3.3.3zm1.7-.1c.2 0 .4-.2.4-.4l.2-2.7-.2-5.1c0-.2-.2-.4-.4-.4s-.4.2-.4.4l-.2 5.1.2 2.7c0 .2.2.4.4.4zm1.7.1c.2 0 .4-.2.4-.4l.2-2.8-.2-6.6c0-.2-.2-.4-.4-.4s-.4.2-.4.4l-.2 6.6.2 2.8c0 .2.2.4.4.4zm1.8.1c.3 0 .5-.2.5-.5l.2-2.8-.2-7c0-.3-.2-.5-.5-.5s-.5.2-.5.5l-.1 7 .1 2.8c0 .3.2.5.5.5zM12.9 16c.3 0 .5-.2.5-.5l.2-3-.2-7.4c0-.3-.2-.5-.5-.5s-.5.2-.5.5l-.1 7.4.1 3c0 .3.2.5.5.5zm6.5 0h-4.7c-.3 0-.5-.2-.5-.5V6c0-.2.1-.4.4-.5.6-.3 1.3-.5 2.1-.5 2.6 0 4.7 2 4.9 4.6 1 .4 1.8 1.4 1.8 2.6 0 1.5-1.3 2.8-2.9 2.8z"
-              />
-            </svg>
-          </a>
-
-          <a
-            v-if="episode.downloadUrl"
-            :href="episode.downloadUrl"
-            target="_blank"
-            rel="noopener noreferrer"
-            download
-            class="icon-action"
-            aria-label="Letöltés"
-            v-tooltip.bottom="'Letöltés'"
-          >
-            <i class="pi pi-download" />
-          </a>
-        </div>
-      </div>
-    </section>
-
-    <section v-if="episode.topics?.length" class="block">
-      <h2 class="section-title">Témák</h2>
-      <ol class="topics-list">
-        <li v-for="(t, i) in episode.topics" :key="`t-${i}`" class="topic-row">
-          <a
-            v-if="t.url"
-            :href="t.url"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="topic-link"
-            :aria-label="`${t.title} – YouTube`"
-            v-tooltip.top="{ value: 'Megnyitás YouTube-on', showDelay: 600, hideDelay: 200 }"
-          >
-            <span v-if="t.startTime" class="topic-time">{{ t.startTime }}</span>
-            <span class="topic-title">{{ t.title }}</span>
-            <i class="pi pi-play-circle topic-icon" />
-          </a>
-          <div v-else class="topic-link topic-link-static">
-            <span v-if="t.startTime" class="topic-time">{{ t.startTime }}</span>
-            <span class="topic-title">{{ t.title }}</span>
-          </div>
-        </li>
-      </ol>
-    </section>
-
-    <section v-if="episode.participants?.length" class="block participants-block">
-      <h2 class="section-title">Résztvevők</h2>
-      <div class="participants-grid">
-        <div v-for="p in episode.participants" :key="`p-${p.id}`" class="participants-card">
-          <Avatar
-            :image="p.avatarUrl || undefined"
-            :icon="!p.avatarUrl ? 'pi pi-user' : undefined"
-            class="participant-image"
-            size="xlarge"
-            shape="circle"
-            aria-hidden="true"
+      <template v-else>
+        <section class="hero" aria-label="Epizód">
+          <NuxtImg
+            v-if="heroImage"
+            class="hero-bg"
+            :src="heroImage"
+            alt=""
+            width="1400"
+            height="788"
+            sizes="100vw md:1400px"
+            preload
+            fetchpriority="high"
           />
-          <div class="participant-name">{{ p.name }}</div>
-        </div>
-      </div>
-    </section>
+          <div class="hero-scrim" />
 
-    <CarouselRowSkeleton v-if="relatedPending && !relatedEpisodes.length" title="Hasonló epizódok" />
-
-    <section v-if="relatedEpisodes.length" class="block related-block">
-      <h2 class="section-title">Hasonló epizódok</h2>
-
-      <Carousel
-        :value="relatedEpisodes"
-        :numVisible="6"
-        :numScroll="1"
-        circular
-        :responsiveOptions="responsiveOptions"
-        :showIndicators="false"
-      >
-        <template #item="slotProps">
-          <NuxtLink
-            :key="slotProps.data.id"
-            :to="`/epizodok/${slotProps.data.slug}`"
-            class="poster-card"
-          >
-            <div class="poster-image">
-              <NuxtImg
-                v-if="slotProps.data.image && !brokenRelatedImages.has(slotProps.data.id)"
-                :src="slotProps.data.image"
-                :alt="slotProps.data.title"
-                width="360"
-                height="640"
-                loading="lazy"
-                sizes="xs:50vw sm:33vw md:25vw lg:16vw"
-                @error="onRelatedImgError(slotProps.data.id)"
-              />
-              <div v-else class="poster-fallback">
-                <i class="pi pi-image" />
-              </div>
-              <div class="poster-scrim" aria-hidden="true" />
-              <div class="poster-overlay">
-                <span v-if="slotProps.data.publishedAt" class="poster-date">
-                  {{ formatShortDate(slotProps.data.publishedAt) }}
-                </span>
-                <h3 class="poster-title">{{ slotProps.data.title }}</h3>
-              </div>
-            </div>
+          <NuxtLink :to="homeBackUrl" class="hero-back" aria-label="Vissza az epizódokhoz">
+            <i class="pi pi-arrow-left" />
+            <span>Epizódok</span>
           </NuxtLink>
-        </template>
-      </Carousel>
-    </section>
-    </template>
+
+          <div class="hero-content">
+            <h1 class="hero-title">{{ episode.title }}</h1>
+
+            <div v-if="participantString" class="hero-participants">
+              <span>{{ participantString }}</span>
+            </div>
+
+            <div v-if="publishedLong" class="hero-meta">
+              <span class="meta-item meta-date">
+                <i class="pi pi-calendar" aria-hidden="true" />
+                {{ publishedLong }}
+              </span>
+            </div>
+
+            <div class="hero-actions">
+              <a
+                v-if="watchUrl"
+                :href="watchUrl"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="primary-action"
+              >
+                <i class="pi pi-play-circle" />
+                <span>Megnézés</span>
+              </a>
+
+              <a
+                v-if="episode.soundcloudUrl"
+                :href="episode.soundcloudUrl"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="icon-action"
+                aria-label="SoundCloud-on hallgatás"
+                v-tooltip.bottom="'SoundCloud'"
+              >
+                <svg
+                  class="action-svg"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  aria-hidden="true"
+                  focusable="false"
+                >
+                  <path
+                    d="M1.4 14.4c.1 0 .2-.1.2-.2l.3-2-.3-2c0-.1-.1-.2-.2-.2s-.2.1-.2.2l-.3 2 .3 2c0 .1.1.2.2.2zm1.4.6c.1 0 .2-.1.2-.2l.4-2.6-.4-2.7c0-.1-.1-.2-.2-.2s-.2.1-.2.2l-.3 2.7.3 2.6c0 .1.1.2.2.2zm1.6.3c.2 0 .3-.1.3-.3l.3-2.8-.3-2.9c0-.2-.1-.3-.3-.3s-.3.1-.3.3l-.3 2.9.3 2.8c0 .2.1.3.3.3zm1.6.1c.2 0 .3-.1.3-.3l.3-2.9-.3-3c0-.2-.1-.3-.3-.3s-.3.1-.3.3l-.2 3 .2 2.9c0 .2.1.3.3.3zm1.7-.1c.2 0 .4-.2.4-.4l.2-2.7-.2-5.1c0-.2-.2-.4-.4-.4s-.4.2-.4.4l-.2 5.1.2 2.7c0 .2.2.4.4.4zm1.7.1c.2 0 .4-.2.4-.4l.2-2.8-.2-6.6c0-.2-.2-.4-.4-.4s-.4.2-.4.4l-.2 6.6.2 2.8c0 .2.2.4.4.4zm1.8.1c.3 0 .5-.2.5-.5l.2-2.8-.2-7c0-.3-.2-.5-.5-.5s-.5.2-.5.5l-.1 7 .1 2.8c0 .3.2.5.5.5zM12.9 16c.3 0 .5-.2.5-.5l.2-3-.2-7.4c0-.3-.2-.5-.5-.5s-.5.2-.5.5l-.1 7.4.1 3c0 .3.2.5.5.5zm6.5 0h-4.7c-.3 0-.5-.2-.5-.5V6c0-.2.1-.4.4-.5.6-.3 1.3-.5 2.1-.5 2.6 0 4.7 2 4.9 4.6 1 .4 1.8 1.4 1.8 2.6 0 1.5-1.3 2.8-2.9 2.8z"
+                  />
+                </svg>
+              </a>
+
+              <a
+                v-if="episode.downloadUrl"
+                :href="episode.downloadUrl"
+                target="_blank"
+                rel="noopener noreferrer"
+                download
+                class="icon-action"
+                aria-label="Letöltés"
+                v-tooltip.bottom="'Letöltés'"
+              >
+                <i class="pi pi-download" />
+              </a>
+            </div>
+          </div>
+        </section>
+
+        <section v-if="episode.tags?.map((e) => e.name)?.includes('Expressz')" class="block">
+          <h2 class="section-title">Leírás</h2>
+          <div>
+            {{ description }}
+          </div>
+        </section>
+
+        <section v-if="episode.topics?.length" class="block">
+          <h2 class="section-title">Témák</h2>
+          <ol class="topics-list">
+            <li v-for="(t, i) in episode.topics" :key="`t-${i}`" class="topic-row">
+              <a
+                v-if="t.url"
+                :href="t.url"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="topic-link"
+                :aria-label="`${t.title} – YouTube`"
+                v-tooltip.top="{ value: 'Megnyitás YouTube-on', showDelay: 600, hideDelay: 200 }"
+              >
+                <span v-if="t.startTime" class="topic-time">{{ t.startTime }}</span>
+                <span class="topic-title">{{ t.title }}</span>
+                <i class="pi pi-play-circle topic-icon" />
+              </a>
+              <div v-else class="topic-link topic-link-static">
+                <span v-if="t.startTime" class="topic-time">{{ t.startTime }}</span>
+                <span class="topic-title">{{ t.title }}</span>
+              </div>
+            </li>
+          </ol>
+        </section>
+
+        <section v-if="episode.participants?.length" class="block participants-block">
+          <h2 class="section-title">Résztvevők</h2>
+          <div class="participants-grid">
+            <div v-for="p in episode.participants" :key="`p-${p.id}`" class="participants-card">
+              <Avatar
+                :image="p.avatarUrl || undefined"
+                :icon="!p.avatarUrl ? 'pi pi-user' : undefined"
+                class="participant-image"
+                size="xlarge"
+                shape="circle"
+                aria-hidden="true"
+              />
+              <div class="participant-name">{{ p.name }}</div>
+            </div>
+          </div>
+        </section>
+
+        <CarouselRowSkeleton
+          v-if="relatedPending && !relatedEpisodes.length"
+          title="Hasonló epizódok"
+        />
+
+        <section v-if="relatedEpisodes.length" class="block related-block">
+          <h2 class="section-title">Hasonló epizódok</h2>
+
+          <Carousel
+            :value="relatedEpisodes"
+            :numVisible="6"
+            :numScroll="1"
+            circular
+            :responsiveOptions="responsiveOptions"
+            :showIndicators="false"
+          >
+            <template #item="slotProps">
+              <NuxtLink
+                :key="slotProps.data.id"
+                :to="`/epizodok/${slotProps.data.slug}`"
+                class="poster-card"
+              >
+                <div class="poster-image">
+                  <NuxtImg
+                    v-if="slotProps.data.image && !brokenRelatedImages.has(slotProps.data.id)"
+                    :src="slotProps.data.image"
+                    :alt="slotProps.data.title"
+                    width="360"
+                    height="640"
+                    loading="lazy"
+                    sizes="xs:50vw sm:33vw md:25vw lg:16vw"
+                    @error="onRelatedImgError(slotProps.data.id)"
+                  />
+                  <div v-else class="poster-fallback">
+                    <i class="pi pi-image" />
+                  </div>
+                  <div class="poster-scrim" aria-hidden="true" />
+                  <div class="poster-overlay">
+                    <span v-if="slotProps.data.publishedAt" class="poster-date">
+                      {{ formatShortDate(slotProps.data.publishedAt) }}
+                    </span>
+                    <h3 class="poster-title">{{ slotProps.data.title }}</h3>
+                  </div>
+                </div>
+              </NuxtLink>
+            </template>
+          </Carousel>
+        </section>
+      </template>
     </ClientOnly>
   </article>
 </template>

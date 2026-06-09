@@ -4,6 +4,7 @@ import { useAuthStore } from '~/stores/auth'
 
 const auth = useAuthStore()
 const router = useRouter()
+const route = useRoute()
 
 const siteUrl = useSiteConfig().url
 useSeoMeta({
@@ -17,6 +18,7 @@ useSeoMeta({
 
 const menuItems = computed<MenuItem[]>(() => {
   const items: MenuItem[] = [
+    { label: 'Epizódok', icon: 'pi pi-list', route: '/epizodok' },
     { label: 'A Nép akarata', icon: 'pi pi-sparkles', route: '/nep-akarata' },
   ]
   if (auth.isAuthenticated) {
@@ -33,13 +35,32 @@ async function handleLogout() {
 function goToProfile() {
   router.push('/admin/profile')
 }
+
+const hasTransparentNavSupport = computed(() => route.path === '/')
+const isScrolled = ref(false)
+const isSolid = computed(() => !hasTransparentNavSupport.value || isScrolled.value)
+
+function handleScroll() {
+  isScrolled.value = window.scrollY > 30
+}
+
+onMounted(() => {
+  handleScroll()
+  window.addEventListener('scroll', handleScroll, { passive: true })
+})
+
+onBeforeUnmount(() => {
+  if (import.meta.client) {
+    window.removeEventListener('scroll', handleScroll)
+  }
+})
 </script>
 
 <template>
   <Toast />
   <ConfirmDialog />
 
-  <Menubar :model="menuItems" class="app-menubar">
+  <Menubar :model="menuItems" class="app-menubar" :class="{ 'is-solid': isSolid }">
     <template #start>
       <NuxtLink to="/" class="brand">Filmbarátok</NuxtLink>
     </template>
@@ -89,10 +110,30 @@ function goToProfile() {
 
 <style>
 .app-menubar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
   border-radius: 0;
   border-left: 0;
   border-right: 0;
   border-top: 0;
+  transition:
+    background-color 200ms ease,
+    border-bottom-color 200ms ease,
+    backdrop-filter 200ms ease;
+}
+
+.app-menubar:not(.is-solid) {
+  background: transparent;
+  border-bottom-color: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.app-menubar.is-solid {
+  background-color: color-mix(in srgb, var(--p-content-background) 80%, transparent);
+  backdrop-filter: blur(10px) saturate(140%);
+  -webkit-backdrop-filter: blur(10px) saturate(140%);
 }
 
 .brand {
