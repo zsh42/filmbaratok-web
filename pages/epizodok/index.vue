@@ -72,18 +72,17 @@ useSeoMeta({
 const listingMemory = useListingMemory<{ url: string }>('episodes')
 
 const asyncDataKey = computed(
-  () => `public-episodes-list-p${page.value}-s${pageSize.value}-q${search.value}-t${tag.value ?? ''}`,
+  () =>
+    `public-episodes-list-p${page.value}-s${pageSize.value}-q${search.value}-t${tag.value ?? ''}`,
 )
 
-const { data: initialData } = await useAsyncData(
-  asyncDataKey.value,
-  () =>
-    listPublicEpisodes({
-      page: page.value,
-      pageSize: pageSize.value,
-      search: search.value || null,
-      tagId: tagId.value,
-    }),
+const { data: initialData } = await useAsyncData(asyncDataKey.value, () =>
+  listPublicEpisodes({
+    page: page.value,
+    pageSize: pageSize.value,
+    search: search.value || null,
+    tagId: tagId.value,
+  }),
 )
 
 const episodes = ref<Episode[]>(initialData.value?.episodes ?? [])
@@ -148,12 +147,7 @@ async function load() {
   }
 }
 
-function buildQuery(opts: {
-  page: number
-  pageSize: number
-  search: string
-  tag: TagSlug | null
-}) {
+function buildQuery(opts: { page: number; pageSize: number; search: string; tag: TagSlug | null }) {
   const query: Record<string, string> = {}
   if (opts.tag) query.tag = opts.tag
   if (opts.search) query.search = opts.search
@@ -345,7 +339,7 @@ onBeforeUnmount(() => {
       :rows-per-page-options="[6, 12, 24, 48]"
       data-key="id"
       paginator-template="FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink RowsPerPageDropdown"
-      current-page-report-template="{first}–{last} / {totalRecords}"
+      current-page-report-template="{currentPage} / {totalPages}"
       @page="onPage"
     >
       <template #grid="{ items }">
