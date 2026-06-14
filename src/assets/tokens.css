@@ -1,0 +1,20 @@
+/* Brand-extra tokens — PrimeVue Aura által nem fedett értékek. */
+:root {
+  --fb-hero-bg: #08080d;
+
+  --fb-glass-bg: rgba(255, 255, 255, 0.08);
+  --fb-glass-bg-strong: rgba(255, 255, 255, 0.16);
+  --fb-glass-border: rgba(255, 255, 255, 0.12);
+
+  --fb-accent-rating: #f59e0b;
+  --fb-accent-pick-1: #f59e0b;
+  --fb-accent-pick-2: #ef4444;
+  --fb-accent-pick-3: #8b5cf6;
+
+  --fb-content-invert: #0c0c14;
+  --fb-surface-invert: #ffffff;
+
+  --fb-font-display: 'Cormorant Garamond', 'Playfair Display', Georgia, 'Times New Roman', serif;
+
+  --p-content-background: #0a0c0e;
+}

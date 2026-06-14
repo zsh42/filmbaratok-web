@@ -1,9 +1,5 @@
 import { api } from './client'
-import type {
-  EpisodeListResponse,
-  EpisodeResponse,
-  EpisodeUpdatePayload,
-} from '@/types/episode'
+import type { EpisodeListResponse, EpisodeResponse, EpisodeUpdatePayload } from '@/types/episode'
 
 export interface EpisodeListParams {
   page?: number

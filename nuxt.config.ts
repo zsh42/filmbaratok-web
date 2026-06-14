@@ -1,5 +1,5 @@
 import { resolve } from 'node:path'
-import Aura from '@primeuix/themes/aura'
+import { FbAura } from './app/primevue-theme'
 
 export default defineNuxtConfig({
   compatibilityDate: '2025-06-01',
@@ -31,7 +31,19 @@ export default defineNuxtConfig({
     '@nuxtjs/sitemap',
     '@nuxtjs/robots',
     '@nuxt/image',
+    '@nuxt/fonts',
   ],
+
+  fonts: {
+    families: [
+      {
+        name: 'Cormorant Garamond',
+        provider: 'google',
+        weights: [400, 600],
+        subsets: ['latin', 'latin-ext'],
+      },
+    ],
+  },
 
   components: [{ path: '~/components', pathPrefix: false }],
 
@@ -52,7 +64,7 @@ export default defineNuxtConfig({
   primevue: {
     options: {
       theme: {
-        preset: Aura,
+        preset: FbAura,
         options: {
           darkModeSelector: '.app-dark',
         },

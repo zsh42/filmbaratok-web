@@ -5,8 +5,9 @@ export default defineNuxtPlugin(() => {
     for (const m of mutations) {
       for (const node of m.addedNodes) {
         if (!(node instanceof HTMLElement)) continue
-        const dialog =
-          node.matches?.('.p-dialog, .p-dialog-mask') ? node : node.querySelector?.('.p-dialog')
+        const dialog = node.matches?.('.p-dialog, .p-dialog-mask')
+          ? node
+          : node.querySelector?.('.p-dialog')
         if (!dialog) continue
         const closeBtn = dialog.querySelector<HTMLElement>('.p-dialog-close-button')
         if (!closeBtn) continue

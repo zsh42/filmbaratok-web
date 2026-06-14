@@ -66,12 +66,7 @@ async function handleSubmit() {
 
           <Message v-if="error" severity="error" :closable="false">{{ error }}</Message>
 
-          <Button
-            type="submit"
-            label="Bejelentkezés"
-            icon="pi pi-sign-in"
-            :loading="submitting"
-          />
+          <Button type="submit" label="Bejelentkezés" icon="pi pi-sign-in" :loading="submitting" />
         </form>
       </template>
     </Card>

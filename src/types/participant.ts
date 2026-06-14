@@ -27,4 +27,6 @@ export interface ParticipantResponse {
   participant: Participant
 }
 
-export type ParticipantUpdatePayload = Partial<Omit<Participant, 'id' | 'normalizedName' | 'createdAt' | 'updatedAt'>>
+export type ParticipantUpdatePayload = Partial<
+  Omit<Participant, 'id' | 'normalizedName' | 'createdAt' | 'updatedAt'>
+>

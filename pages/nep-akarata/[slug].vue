@@ -72,9 +72,9 @@ useHead(
           actor: movie.value.actors
             ? movie.value.actors
                 .split(',')
-                .map(n => n.trim())
+                .map((n) => n.trim())
                 .filter(Boolean)
-                .map(name => ({ '@type': 'Person', name }))
+                .map((name) => ({ '@type': 'Person', name }))
             : undefined,
           duration: movie.value.runtime || undefined,
           datePublished: movie.value.year || undefined,
@@ -155,7 +155,7 @@ function onTiltMqChange(e: MediaQueryListEvent) {
   else destroyPosterTilt()
 }
 
-watch(posterRef, el => {
+watch(posterRef, (el) => {
   if (el) initPosterTilt()
   else destroyPosterTilt()
 })
@@ -180,74 +180,74 @@ onBeforeUnmount(() => {
       </template>
       <MovieDetailSkeleton v-if="pending" />
 
-    <template v-else>
-    <nav class="breadcrumb" aria-label="Útvonal">
-      <NuxtLink :to="nepakarataBackUrl" class="breadcrumb-link">
-        <i class="pi pi-arrow-left" />
-        <span>A Nép akarata</span>
-      </NuxtLink>
-    </nav>
+      <template v-else>
+        <nav class="breadcrumb" aria-label="Útvonal">
+          <NuxtLink :to="nepakarataBackUrl" class="breadcrumb-link">
+            <i class="pi pi-arrow-left" />
+            <span>A Nép akarata</span>
+          </NuxtLink>
+        </nav>
 
-    <header class="movie-header">
-      <h1 class="movie-title">{{ displayTitle }}</h1>
-      <div v-if="movie.year || movie.runtime || movie.genre" class="movie-subtitle">
-        <span v-if="movie.year">{{ movie.year }}</span>
-        <span v-if="movie.runtime">{{ movie.runtime }}</span>
-        <span v-if="movie.genre">{{ movie.genre }}</span>
-      </div>
-    </header>
+        <header class="movie-header">
+          <h1 class="movie-title">{{ displayTitle }}</h1>
+          <div v-if="movie.year || movie.runtime || movie.genre" class="movie-subtitle">
+            <span v-if="movie.year">{{ movie.year }}</span>
+            <span v-if="movie.runtime">{{ movie.runtime }}</span>
+            <span v-if="movie.genre">{{ movie.genre }}</span>
+          </div>
+        </header>
 
-    <div class="movie-body">
-      <div ref="posterRef" class="detail-poster">
-        <NuxtImg
-          v-if="movie.poster && !posterBroken"
-          :src="movie.poster"
-          :alt="displayTitle"
-          class="detail-poster-img"
-          width="400"
-          height="600"
-          sizes="xs:100vw sm:50vw md:200px"
-          preload
-          fetchpriority="high"
-          @error="posterBroken = true"
-        />
-        <div v-else class="no-poster-large">
-          <i class="pi pi-image" />
-          <span>Nincs poszter</span>
-        </div>
-      </div>
+        <div class="movie-body">
+          <div ref="posterRef" class="detail-poster">
+            <NuxtImg
+              v-if="movie.poster && !posterBroken"
+              :src="movie.poster"
+              :alt="displayTitle"
+              class="detail-poster-img"
+              width="400"
+              height="600"
+              sizes="xs:100vw sm:50vw md:200px"
+              preload
+              fetchpriority="high"
+              @error="posterBroken = true"
+            />
+            <div v-else class="no-poster-large">
+              <i class="pi pi-image" />
+              <span>Nincs poszter</span>
+            </div>
+          </div>
 
-      <div class="detail-meta">
-        <div v-if="movie.imdbRating" class="meta-row">
-          <span class="meta-label">IMDB értékelés</span>
-          <span class="rating-value">
-            <i class="pi pi-star-fill rating-icon" /> {{ movie.imdbRating }}
-          </span>
+          <div class="detail-meta">
+            <div v-if="movie.imdbRating" class="meta-row">
+              <span class="meta-label">IMDB értékelés</span>
+              <span class="rating-value">
+                <i class="pi pi-star-fill rating-icon" /> {{ movie.imdbRating }}
+              </span>
+            </div>
+            <div v-if="movie.director" class="meta-row">
+              <span class="meta-label">Rendező</span>
+              <span>{{ movie.director }}</span>
+            </div>
+            <div v-if="movie.actors" class="meta-row">
+              <span class="meta-label">Szereplők</span>
+              <span>{{ movie.actors }}</span>
+            </div>
+            <div v-if="movie.pickedAt" class="meta-row">
+              <span class="meta-label">Kisorsolt</span>
+              <span>{{ formatDate(movie.pickedAt) }}</span>
+            </div>
+            <div v-if="movie.plot" class="meta-row plot">
+              <span class="meta-label">Leírás</span>
+              <span>{{ movie.plot }}</span>
+            </div>
+            <div class="meta-row">
+              <a :href="movie.imdbUrl" target="_blank" rel="noopener noreferrer">
+                <Button label="Megnyitás IMDB-n" icon="pi pi-external-link" size="small" text />
+              </a>
+            </div>
+          </div>
         </div>
-        <div v-if="movie.director" class="meta-row">
-          <span class="meta-label">Rendező</span>
-          <span>{{ movie.director }}</span>
-        </div>
-        <div v-if="movie.actors" class="meta-row">
-          <span class="meta-label">Szereplők</span>
-          <span>{{ movie.actors }}</span>
-        </div>
-        <div v-if="movie.pickedAt" class="meta-row">
-          <span class="meta-label">Kisorsolt</span>
-          <span>{{ formatDate(movie.pickedAt) }}</span>
-        </div>
-        <div v-if="movie.plot" class="meta-row plot">
-          <span class="meta-label">Leírás</span>
-          <span>{{ movie.plot }}</span>
-        </div>
-        <div class="meta-row">
-          <a :href="movie.imdbUrl" target="_blank" rel="noopener noreferrer">
-            <Button label="Megnyitás IMDB-n" icon="pi pi-external-link" size="small" text />
-          </a>
-        </div>
-      </div>
-    </div>
-    </template>
+      </template>
     </ClientOnly>
   </article>
 </template>

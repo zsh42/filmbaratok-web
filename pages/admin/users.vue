@@ -1,7 +1,13 @@
 <script setup lang="ts">
 import { useToast } from 'primevue/usetoast'
 import { useConfirm } from 'primevue/useconfirm'
-import { listUsers, createUser, updateUser, resetUserPassword, deleteUser } from '~/composables/api/users'
+import {
+  listUsers,
+  createUser,
+  updateUser,
+  resetUserPassword,
+  deleteUser,
+} from '~/composables/api/users'
 import { ApiError } from '~/composables/api/client'
 import type { AdminUser } from '@/types/user'
 
@@ -86,21 +92,41 @@ function openReset(user: AdminUser) {
 async function onSaveCreate() {
   const email = formEmail.value.trim()
   if (!email || !formPassword.value) {
-    toast.add({ severity: 'warn', summary: 'Hiányzó adat', detail: 'Az e-mail és jelszó kötelező.', life: 3000 })
+    toast.add({
+      severity: 'warn',
+      summary: 'Hiányzó adat',
+      detail: 'Az e-mail és jelszó kötelező.',
+      life: 3000,
+    })
     return
   }
   if (formPassword.value.length < 8) {
-    toast.add({ severity: 'warn', summary: 'Rövid jelszó', detail: 'A jelszónak legalább 8 karakter hosszúnak kell lennie.', life: 3000 })
+    toast.add({
+      severity: 'warn',
+      summary: 'Rövid jelszó',
+      detail: 'A jelszónak legalább 8 karakter hosszúnak kell lennie.',
+      life: 3000,
+    })
     return
   }
   submitting.value = true
   try {
     await createUser({ email, password: formPassword.value })
-    toast.add({ severity: 'success', summary: 'Létrehozva', detail: `"${email}" hozzáadva.`, life: 3000 })
+    toast.add({
+      severity: 'success',
+      summary: 'Létrehozva',
+      detail: `"${email}" hozzáadva.`,
+      life: 3000,
+    })
     creating.value = false
     await load()
   } catch (err) {
-    toast.add({ severity: 'error', summary: 'Hiba', detail: mapApiError(err, 'create'), life: 4000 })
+    toast.add({
+      severity: 'error',
+      summary: 'Hiba',
+      detail: mapApiError(err, 'create'),
+      life: 4000,
+    })
   } finally {
     submitting.value = false
   }
@@ -110,13 +136,23 @@ async function onSaveEdit() {
   if (!editing.value) return
   const email = formEmail.value.trim()
   if (!email) {
-    toast.add({ severity: 'warn', summary: 'Hiányzó adat', detail: 'Az e-mail cím kötelező.', life: 3000 })
+    toast.add({
+      severity: 'warn',
+      summary: 'Hiányzó adat',
+      detail: 'Az e-mail cím kötelező.',
+      life: 3000,
+    })
     return
   }
   submitting.value = true
   try {
     await updateUser(editing.value.id, { email })
-    toast.add({ severity: 'success', summary: 'Mentve', detail: `"${email}" frissítve.`, life: 3000 })
+    toast.add({
+      severity: 'success',
+      summary: 'Mentve',
+      detail: `"${email}" frissítve.`,
+      life: 3000,
+    })
     editing.value = null
     await load()
   } catch (err) {
@@ -129,15 +165,30 @@ async function onSaveEdit() {
 async function onSaveReset() {
   if (!resetting.value) return
   if (!resetPasswordField.value || !resetPasswordConfirm.value) {
-    toast.add({ severity: 'warn', summary: 'Hiányzó adat', detail: 'Mindkét jelszó megadása kötelező.', life: 3000 })
+    toast.add({
+      severity: 'warn',
+      summary: 'Hiányzó adat',
+      detail: 'Mindkét jelszó megadása kötelező.',
+      life: 3000,
+    })
     return
   }
   if (resetPasswordField.value.length < 8) {
-    toast.add({ severity: 'warn', summary: 'Rövid jelszó', detail: 'A jelszónak legalább 8 karakter hosszúnak kell lennie.', life: 3000 })
+    toast.add({
+      severity: 'warn',
+      summary: 'Rövid jelszó',
+      detail: 'A jelszónak legalább 8 karakter hosszúnak kell lennie.',
+      life: 3000,
+    })
     return
   }
   if (resetPasswordField.value !== resetPasswordConfirm.value) {
-    toast.add({ severity: 'warn', summary: 'Nem egyezik', detail: 'A két jelszó nem egyezik.', life: 3000 })
+    toast.add({
+      severity: 'warn',
+      summary: 'Nem egyezik',
+      detail: 'A két jelszó nem egyezik.',
+      life: 3000,
+    })
     return
   }
   submitting.value = true
@@ -167,7 +218,12 @@ function onDelete(user: AdminUser) {
         toast.add({ severity: 'success', summary: 'Törölve', life: 3000 })
         await load()
       } catch (err) {
-        toast.add({ severity: 'error', summary: 'Hiba', detail: mapApiError(err, 'delete'), life: 4000 })
+        toast.add({
+          severity: 'error',
+          summary: 'Hiba',
+          detail: mapApiError(err, 'delete'),
+          life: 4000,
+        })
       }
     },
   })
@@ -275,7 +331,13 @@ onMounted(() => {
         </div>
         <div class="form-field">
           <label for="create-password">Jelszó * <span class="hint">(min. 8 karakter)</span></label>
-          <Password id="create-password" v-model="formPassword" :feedback="false" toggle-mask fluid />
+          <Password
+            id="create-password"
+            v-model="formPassword"
+            :feedback="false"
+            toggle-mask
+            fluid
+          />
         </div>
       </div>
       <template #footer>
@@ -298,7 +360,11 @@ onMounted(() => {
       modal
       :draggable="false"
       dismissable-mask
-      @update:visible="(v) => { if (!v) editing = null }"
+      @update:visible="
+        (v) => {
+          if (!v) editing = null
+        }
+      "
       @hide="editing = null"
     >
       <div class="form-grid">
@@ -327,18 +393,38 @@ onMounted(() => {
       modal
       :draggable="false"
       dismissable-mask
-      @update:visible="(v) => { if (!v) resetting = null }"
+      @update:visible="
+        (v) => {
+          if (!v) resetting = null
+        }
+      "
       @hide="resetting = null"
     >
       <div class="form-grid">
-        <p class="reset-note muted">Felhasználó: <strong>{{ resetting?.email }}</strong></p>
+        <p class="reset-note muted">
+          Felhasználó: <strong>{{ resetting?.email }}</strong>
+        </p>
         <div class="form-field">
-          <label for="reset-password">Új jelszó * <span class="hint">(min. 8 karakter)</span></label>
-          <Password id="reset-password" v-model="resetPasswordField" :feedback="false" toggle-mask fluid />
+          <label for="reset-password"
+            >Új jelszó * <span class="hint">(min. 8 karakter)</span></label
+          >
+          <Password
+            id="reset-password"
+            v-model="resetPasswordField"
+            :feedback="false"
+            toggle-mask
+            fluid
+          />
         </div>
         <div class="form-field">
           <label for="reset-password-confirm">Új jelszó megerősítése *</label>
-          <Password id="reset-password-confirm" v-model="resetPasswordConfirm" :feedback="false" toggle-mask fluid />
+          <Password
+            id="reset-password-confirm"
+            v-model="resetPasswordConfirm"
+            :feedback="false"
+            toggle-mask
+            fluid
+          />
         </div>
       </div>
       <template #footer>

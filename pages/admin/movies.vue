@@ -337,7 +337,13 @@ onBeforeUnmount(() => {
         <InputText v-model="searchInput" placeholder="Keresés…" @keyup.enter="applySearch" />
         <InputIcon v-if="searchInput" class="pi pi-times clear-icon" @click="clearSearch" />
       </IconField>
-      <Button label="Keresés" icon="pi pi-search" severity="secondary" outlined @click="applySearch" />
+      <Button
+        label="Keresés"
+        icon="pi pi-search"
+        severity="secondary"
+        outlined
+        @click="applySearch"
+      />
       <div class="toolbar-actions">
         <Button
           v-if="status === 'pending'"
@@ -439,21 +445,14 @@ onBeforeUnmount(() => {
         </Column>
       </DataTable>
 
-      <div
-        v-if="hasMore && !error"
-        ref="sentinel"
-        class="scroll-sentinel"
-        aria-hidden="true"
-      >
+      <div v-if="hasMore && !error" ref="sentinel" class="scroll-sentinel" aria-hidden="true">
         <ProgressSpinner
           v-if="loading && movies.length > 0"
           style="width: 2rem; height: 2rem"
           stroke-width="4"
         />
       </div>
-      <div v-else-if="movies.length > 0 && !error" class="list-footer">
-        {{ total }} film
-      </div>
+      <div v-else-if="movies.length > 0 && !error" class="list-footer">{{ total }} film</div>
     </div>
 
     <Dialog

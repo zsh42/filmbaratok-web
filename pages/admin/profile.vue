@@ -78,13 +78,7 @@ async function onSubmit() {
 
           <div class="form-field">
             <label for="new-password">Új jelszó</label>
-            <Password
-              id="new-password"
-              v-model="newPassword"
-              :feedback="false"
-              toggle-mask
-              fluid
-            />
+            <Password id="new-password" v-model="newPassword" :feedback="false" toggle-mask fluid />
             <span class="hint">Minimum 8 karakter</span>
           </div>
 

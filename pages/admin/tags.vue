@@ -34,7 +34,11 @@ async function load() {
   loading.value = true
   error.value = null
   try {
-    const res = await listTags({ page: page.value, pageSize: pageSize.value, search: search.value || null })
+    const res = await listTags({
+      page: page.value,
+      pageSize: pageSize.value,
+      search: search.value || null,
+    })
     tags.value = res.tags
     total.value = res.total
     page.value = res.page
@@ -92,11 +96,21 @@ async function onSave() {
   try {
     if (creating.value) {
       await createTag(name)
-      toast.add({ severity: 'success', summary: 'Létrehozva', detail: `"${name}" hozzáadva.`, life: 3000 })
+      toast.add({
+        severity: 'success',
+        summary: 'Létrehozva',
+        detail: `"${name}" hozzáadva.`,
+        life: 3000,
+      })
       creating.value = false
     } else if (editing.value) {
       await updateTag(editing.value.id, name)
-      toast.add({ severity: 'success', summary: 'Mentve', detail: `"${name}" frissítve.`, life: 3000 })
+      toast.add({
+        severity: 'success',
+        summary: 'Mentve',
+        detail: `"${name}" frissítve.`,
+        life: 3000,
+      })
       editing.value = null
     }
     await load()
@@ -162,7 +176,8 @@ function onDelete(tag: Tag) {
         toast.add({ severity: 'success', summary: 'Törölve', life: 3000 })
         await load()
       } catch (err) {
-        const detail = err instanceof ApiError ? `Törlés sikertelen (${err.status}).` : 'Törlés sikertelen.'
+        const detail =
+          err instanceof ApiError ? `Törlés sikertelen (${err.status}).` : 'Törlés sikertelen.'
         toast.add({ severity: 'error', summary: 'Hiba', detail, life: 4000 })
       }
     },
@@ -287,7 +302,11 @@ onMounted(() => {
       modal
       :draggable="false"
       dismissable-mask
-      @update:visible="(v) => { if (!v) editing = null }"
+      @update:visible="
+        (v) => {
+          if (!v) editing = null
+        }
+      "
       @hide="editing = null"
     >
       <div class="form-field">
@@ -320,13 +339,17 @@ onMounted(() => {
       modal
       :draggable="false"
       dismissable-mask
-      @update:visible="(v) => { if (!v) merging = null }"
+      @update:visible="
+        (v) => {
+          if (!v) merging = null
+        }
+      "
       @hide="merging = null"
     >
       <div class="merge-body">
         <p class="merge-note">
-          <strong>{{ merging?.name }}</strong> összes epizódja átkerül a kiválasztott
-          célcímkére, majd a forrás törlődik. Nem visszavonható.
+          <strong>{{ merging?.name }}</strong> összes epizódja átkerül a kiválasztott célcímkére,
+          majd a forrás törlődik. Nem visszavonható.
         </p>
         <div class="form-field">
           <label for="merge-target">Célcímke *</label>

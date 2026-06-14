@@ -15,5 +15,5 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci
-      - run: npm run lint  # uses package.json "lint" script — note: it applies --fix to the runner FS, which is fine in CI (no commit)
+      - run: npm run lint # uses package.json "lint" script — note: it applies --fix to the runner FS, which is fine in CI (no commit)
       - run: npm run type-check

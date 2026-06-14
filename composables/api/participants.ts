@@ -38,8 +38,7 @@ export function deleteParticipant(id: number) {
 }
 
 export function mergeParticipant(sourceId: number, targetId: number) {
-  return api.post<{ ok: true; mergedInto: number }>(
-    `/api/participants/${sourceId}/merge`,
-    { targetId },
-  )
+  return api.post<{ ok: true; mergedInto: number }>(`/api/participants/${sourceId}/merge`, {
+    targetId,
+  })
 }

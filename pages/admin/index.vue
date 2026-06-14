@@ -184,7 +184,9 @@ async function onImportByVideoIds() {
     importDialogOpen.value = false
     const parts = [`Lekérve: ${res.fetched}/${res.requested}`, `Importálva: ${res.imported}`]
     if (res.notFound.length > 0) {
-      parts.push(`Nem található: ${res.notFound.length} (${res.notFound.slice(0, 3).join(', ')}${res.notFound.length > 3 ? '…' : ''})`)
+      parts.push(
+        `Nem található: ${res.notFound.length} (${res.notFound.slice(0, 3).join(', ')}${res.notFound.length > 3 ? '…' : ''})`,
+      )
     }
     toast.add({
       severity: res.notFound.length > 0 ? 'warn' : 'success',
@@ -479,8 +481,8 @@ onMounted(() => {
           auto-resize
         />
         <p class="import-hint">
-          {{ parsedImportIds.length }} érvényes id felismerve. Az auto-tag szabályok
-          (cím alapján) ugyanúgy lefutnak az új epizódokra. Duplikátum nem keletkezik.
+          {{ parsedImportIds.length }} érvényes id felismerve. Az auto-tag szabályok (cím alapján)
+          ugyanúgy lefutnak az új epizódokra. Duplikátum nem keletkezik.
         </p>
       </div>
       <template #footer>

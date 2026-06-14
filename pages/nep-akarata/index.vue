@@ -9,9 +9,11 @@ import type { Movie, MovieStatus } from '@/types/movie'
 definePageMeta({ layout: 'default' })
 useSeoMeta({
   title: 'A Nép akarata – filmbarátok',
-  description: 'A filmbarátok Nép akarata szavazása — a közönség által javasolt és kisorsolt filmek listája.',
+  description:
+    'A filmbarátok Nép akarata szavazása — a közönség által javasolt és kisorsolt filmek listája.',
   ogTitle: 'A Nép akarata – filmbarátok',
-  ogDescription: 'A filmbarátok Nép akarata szavazása — a közönség által javasolt és kisorsolt filmek listája.',
+  ogDescription:
+    'A filmbarátok Nép akarata szavazása — a közönség által javasolt és kisorsolt filmek listája.',
   ogType: 'website',
   twitterCard: 'summary_large_image',
 })
@@ -303,21 +305,13 @@ onBeforeUnmount(() => {
         </Column>
       </DataTable>
 
-      <div
-        v-if="hasMore && !error"
-        ref="sentinel"
-        class="scroll-sentinel"
-        aria-hidden="true"
-      >
+      <div v-if="hasMore && !error" ref="sentinel" class="scroll-sentinel" aria-hidden="true">
         <div v-if="loading && movies.length > 0" class="movies-skeleton-loader">
           <MovieRowSkeleton v-for="n in 3" :key="n" />
         </div>
       </div>
-      <div v-else-if="movies.length > 0 && !error" class="list-footer">
-        {{ total }} találat
-      </div>
+      <div v-else-if="movies.length > 0 && !error" class="list-footer">{{ total }} találat</div>
     </div>
-
   </section>
 </template>
 

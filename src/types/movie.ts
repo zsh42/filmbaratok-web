@@ -25,4 +25,6 @@ export interface MovieListResponse {
   page: number
   pageSize: number
 }
-export interface MovieResponse { movie: Movie }
+export interface MovieResponse {
+  movie: Movie
+}
